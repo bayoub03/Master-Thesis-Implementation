@@ -26,6 +26,7 @@ The samples included in this repository use several evasion techniques:
 - **Dynamic API Loading:** Implements dynamic loading of APIs.
 - **NTAPIs:** Uses dynamic loading of NTAPIs.
 - **Evasion of API Hooks:** Employs Direct Syscalls for evading API hooks.
+- **Shellcode Injection:** an injection of the Meterpreter payload is performed into **msedge.exe**.
 
 These techniques have been integrated by the author within the AVET framework available on this repo. For syscall generation, the tool **SysWhispers3** is used, available at: [SysWhispers3 on GitHub](https://github.com/klezVirus/SysWhispers3).
 
