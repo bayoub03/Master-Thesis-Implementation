@@ -42,7 +42,7 @@ void XOR(unsigned char* data, size_t data_len) {
     }
 }
 
-int FindTarget(const wchar_t* procname) {
+int FindTarget(const wchar_t* target_process) {
     if (!pCreateToolhelp32Snapshot || !pProcess32First || !pProcess32Next) {
         LoadAPIs();
     }
@@ -65,7 +65,7 @@ int FindTarget(const wchar_t* procname) {
     }
 
     while (pProcess32Next(hProcSnap, &pe32)) {
-        if (lstrcmpiW(procname, pe32.szExeFile) == 0) {
+        if (lstrcmpiW(target_process, pe32.szExeFile) == 0) {
             pid = pe32.th32ProcessID;
             break;
         }
