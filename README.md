@@ -45,3 +45,4 @@ To do so:
 - Add the newly generated file into Visual Studio. Then include the file into the sample of your choice.
 You should be ready to go !
 
+In a kali machine, ensure you have `wine` installed, then you have to simply execute the command with `wine` as a prefix and you should have your XORed payload generated.
