@@ -1,0 +1,9 @@
+﻿  main.c
+C:\Users\User\source\repos\Shellcode_injection_NTAPIs\Shellcode_injection_NTAPIs\main.c(134,58): warning C4311: 'type cast': pointer truncation from 'HANDLE' to 'int'
+C:\Users\User\source\repos\Shellcode_injection_NTAPIs\Shellcode_injection_NTAPIs\main.c(221,41): warning C4312: 'type cast': conversion from 'int' to 'HANDLE' of greater size
+  Generating code
+  3 of 7 functions (42.9%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Shellcode_injection_NTAPIs.vcxproj -> C:\Users\User\source\repos\Shellcode_injection_NTAPIs\x64\Release\Shellcode_injection_NTAPIs.exe

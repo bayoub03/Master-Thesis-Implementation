@@ -1,0 +1,7 @@
+﻿  main.c
+  Generating code
+  5 of 8 functions (62.5%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Shellcode_injection.vcxproj -> C:\Users\User\source\repos\Shellcode_injection_dynamic_lib\x64\Release\Shellcode_injection.exe

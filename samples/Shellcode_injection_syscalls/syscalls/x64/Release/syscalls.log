@@ -1,0 +1,19 @@
+﻿  Assembling syscalls-asm.x64.asm...
+  main.c
+C:\Users\User\source\repos\syscalls\syscalls\main.c(88,35): warning C4311: 'type cast': pointer truncation from 'HANDLE' to 'int'
+C:\Users\User\source\repos\syscalls\syscalls\main.c(123,33): warning C4312: 'type cast': conversion from 'DWORD' to 'HANDLE' of greater size
+C:\Users\User\source\repos\syscalls\syscalls\main.c(129,71): warning C4133: 'function': incompatible types - from 'PULONG' to 'PSIZE_T'
+C:\Users\User\source\repos\syscalls\syscalls\main.c(135,115): warning C4047: 'function': 'SIZE_T' differs in levels of indirection from 'void *'
+C:\Users\User\source\repos\syscalls\syscalls\main.c(135,115): warning C4024: 'Sw3NtCreateThreadEx': different types for formal and actual parameter 8
+C:\Users\User\source\repos\syscalls\syscalls\main.c(135,121): warning C4047: 'function': 'SIZE_T' differs in levels of indirection from 'void *'
+C:\Users\User\source\repos\syscalls\syscalls\main.c(135,121): warning C4024: 'Sw3NtCreateThreadEx': different types for formal and actual parameter 9
+C:\Users\User\source\repos\syscalls\syscalls\main.c(135,127): warning C4047: 'function': 'SIZE_T' differs in levels of indirection from 'void *'
+C:\Users\User\source\repos\syscalls\syscalls\main.c(135,127): warning C4024: 'Sw3NtCreateThreadEx': different types for formal and actual parameter 10
+C:\Users\User\source\repos\syscalls\syscalls\main.c(138,41): warning C4047: 'function': 'PLARGE_INTEGER' differs in levels of indirection from 'unsigned int'
+C:\Users\User\source\repos\syscalls\syscalls\main.c(138,41): warning C4024: 'Sw3NtWaitForSingleObject': different types for formal and actual parameter 3
+  Generating code
+  7 of 12 functions (58.3%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  syscalls.vcxproj -> C:\Users\User\source\repos\syscalls\x64\Release\syscalls.exe
