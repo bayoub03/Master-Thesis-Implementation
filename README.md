@@ -37,6 +37,8 @@ The payload used is stageless Meterpreter x64 reverse HTTPS payload that employs
 
 ## Utils
 
+### XORing Meterpreter payloads
+
 For xoring the payload we used the code available on `XOR_encryptor`.
 
 To do so:
@@ -46,3 +48,21 @@ To do so:
 You should be ready to go !
 
 In a kali machine, ensure you have `wine` installed, then you have to simply execute the command with `wine` as a prefix and you should have your XORed payload generated.
+
+### For generating direct syscalls using Syswhisper3
+
+In a Visual Studio Setup:
+
+- move to the `syswhispers` directory
+- `python.exe syswhispers.py --function NtOpenProcess,NtAllocateVirtualMemory,NtWriteVirtualMemory,NtCreateThreadEx -o output/syscall`
+- Copy the generated H/C/ASM files into the project folder.
+- In Visual Studio, go to Project → Build Customizations... and enable MASM.
+- In the Solution Explorer, add the .h and .c/.asm files to the project as header and source files, respectively.
+- Go to the properties of the ASM file, and set the Item Type to Microsoft Macro Assembler.
+- Compile it
+
+You should be ready to go !
+
+Don't forget to properly call the functions generated `Sw3...()`
+
+Sometimes some adjustement is needed to properly compile the project, make sure they are no redefinition of the same structures. The samples I provided are fully working  (they compile without any issue)
