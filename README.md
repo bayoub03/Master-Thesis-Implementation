@@ -8,7 +8,7 @@ The repository also enhances the AntiVirus Evasion Tool (AVET) with several nota
 - Development of a shellcode injection method that identifies the **target process by name**, automatically determining the PID. This approach is more suitable for Red Teaming scenarios than the original AVET method, which required a *PID to be specified at the command line*.
 - Addition of advanced shellcode injection techniques that use **dynamic API loading**.
 - Implementation of a version that use **dynamic loading of NTAPIs**.
-- Addition of a version that use direct syscall.
+- Addition of a version that use **direct syscall**.
 
 Furthermore, the repository includes a custom xor encoder designed to enhance evasion capabilities, addressing the limitations of the existing AVET encoder that fails to hide the payload against AVs statically.
 
@@ -27,6 +27,29 @@ The repository is organized as follows:
 ## Research Paper
 
 The accompanying thesis paper is available for download in the [paper folder](./paper/thesis.pdf).
+
+## Installing AVET
+
+__The Installtion Instruction applies for Kali 64bit and tdm-gcc!__
+
+You can use the setup script:
+```bash
+./setup.sh
+```
+
+This should automatically get you started by installing/configuring wine and installing tdm-gcc.
+You'll shortly have to click through the tdm-gcc installer GUI though - standard settings should be fine.
+The script will also ask if you want to install AVET's dependencies, which are needed to use some of the build scripts. The fetched dependencies will be put into separate folders next to the avet folder.
+
+
+Dependencies will grab the latest releases of:
+- [pe_to_shellcode](https://github.com/hasherezade/pe_to_shellcode)
+- [mimikatz](https://github.com/gentilkiwi/mimikatz)
+- [DKMC](https://github.com/Mr-Un1k0d3r/DKMC)
+
+
+If for whatever reason you want to install wine and tdm-gcc manually:
+- [How to install tdm-gcc with wine](https://govolution.wordpress.com/2017/02/04/using-tdm-gcc-with-kali-2/)
 
 ## Evasion Techniques
 
