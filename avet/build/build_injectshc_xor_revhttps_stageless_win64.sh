@@ -80,3 +80,4 @@ cleanup_techniques
 echo "
 # Usage example of generated injectshc_xor_revhttps_win64.exe:
 # $ injectshc_xor_revhttps_win64.exe
+"
