@@ -100,3 +100,16 @@ You should be ready to go !
 Don't forget to properly call the functions generated `Sw3...()`
 
 Sometimes some adjustement is needed to properly compile the project, make sure they are no redefinition of the same structures. The samples I provided are fully working  (they compile without any issue)
+
+## Extension of AVET
+
+This section outlines the scripts and files that have been added:
+
+**In the `build/` directory:**
+- `build_injectshc_targetfromcmd_fopen_gethostbyname_xor_https_stageless_win64.sh` ... [details here]
+
+**In the `source/implementations/payload_execution_method` directory:**
+- `inject_shellcode_procname.h` ... [details here]
+
+**Note:**
+- The `static_from_here.h` script from `source/implementations/retrieve_data/` has been modified to address the bug fix detailed earlier.
