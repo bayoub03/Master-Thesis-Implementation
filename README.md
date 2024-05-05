@@ -2,6 +2,16 @@
 
 This repository hosts the implementation of Ayoub's Master Thesis, which explores Malware Obfuscation and Evasion Techniques. The primary focus is on developing methods to bypass the CAPEv2 sandbox.
 
+The repository also enhances the AntiVirus Evasion Tool (AVET) with several notable improvements:
+
+- Introduction of a script to build a **stageless** Meterpreter for performing a shellcode injections.
+- Development of a shellcode injection method that identifies the **target process by name**, automatically determining the PID. This approach is more suitable for Red Teaming scenarios than the original AVET method, which required a *PID to be specified at the command line*.
+- Addition of advanced shellcode injection techniques that use **dynamic API loading**.
+- Implementation of a version that use **dynamic loading of NTAPIs**.
+- Addition of a version that use direct syscall.
+
+Furthermore, the repository includes a custom xor encoder designed to enhance evasion capabilities, addressing the limitations of the existing AVET encoder that fails to hide the payload against AVs statically.
+
 ## Author
 
 BOUHNINE Ayoub
