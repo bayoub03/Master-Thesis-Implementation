@@ -106,7 +106,7 @@ Sometimes some adjustement is needed to properly compile the project, make sure 
 This section outlines the scripts and files that have been added:
 
 **In the `build/` directory:**
-- `build_injectshc_targetfromcmd_fopen_gethostbyname_xor_https_stageless_win64.sh` ... [details here]
+- `build_injectshc_xor_revhttps_stageless_win64.sh` ... [details here]
 
 **In the `source/implementations/payload_execution_method` directory:**
 - `inject_shellcode_procname.h` ... [details here]
