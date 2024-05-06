@@ -11,6 +11,8 @@ The repository also enhances the AntiVirus Evasion Tool (AVET) with several nota
 - Addition of a version that use **direct syscall**.
 - Fixed a bug in the `static_from_here` function. Previously, this function included and called `static_from_file`. However, due to the use of `#pragma once`, macros defined specifically for `static_from_here` were not available in the scope of `static_from_file` if `static_from_file` was included before its invocation by `static_from_here`.
 
+- A basic XOR custom encryption has been added to bypass static detection since the encryption performed by AVET are flagged by AV softwares.
+
 Furthermore, the repository includes a custom xor encoder designed to enhance evasion capabilities, addressing the limitations of the existing AVET encoder that fails to hide the payload against AVs statically.
 
 ## Author
