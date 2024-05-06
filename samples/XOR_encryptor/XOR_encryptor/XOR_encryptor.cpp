@@ -1,3 +1,4 @@
+#include <algorithm> // Include this to use std::remove
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -79,8 +80,8 @@ int main(int argc, char* argv[]) {
     infile.close();
 
     // Remove all newline and quote characters
-    bufferContent.erase(remove(bufferContent.begin(), bufferContent.end(), '\n'), bufferContent.end());
-    bufferContent.erase(remove(bufferContent.begin(), bufferContent.end(), '\"'), bufferContent.end());
+    bufferContent.erase(std::remove(bufferContent.begin(), bufferContent.end(), '\n'), bufferContent.end());
+    bufferContent.erase(std::remove(bufferContent.begin(), bufferContent.end(), '\"'), bufferContent.end());
 
     std::vector<unsigned char> buffer = stringToBytes(bufferContent);
 
