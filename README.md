@@ -109,6 +109,7 @@ This section outlines the scripts and files that have been added:
 
 **In the `build/` directory:**
 - `build_injectshc_xor_revhttps_stageless_win64.sh` ... [details here]
+- `build_injectshc_custom_xor_revhttps_stageless_win64.sh` that has a custom XOR encryption ... [details here]
 
 **In the `source/implementations/payload_execution_method` directory:**
 - `inject_shellcode_procname.h` ... [details here]
