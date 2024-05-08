@@ -161,10 +161,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     OBJECT_ATTRIBUTES object_attributes;
     CLIENT_ID clientId;
 
-    // Load ntdll.dll which contains the NTAPI functions
-    HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
-    if (!hNtdll) return -1;
-
     LoadAPIs();
     // Check initialization
     if (!pNtAllocateVirtualMemory || !pNtWriteVirtualMemory || !pNtOpenProcess || !pNtClose || !pRtlCreateUserThread || !pNtQuerySystemInformation) return -1; 
