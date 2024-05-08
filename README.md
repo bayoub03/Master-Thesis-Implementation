@@ -58,7 +58,7 @@ If for whatever reason you want to install wine and tdm-gcc manually:
 
 The samples, available on the directory `samples/` included in this repository use several evasion techniques:
 
-- **Obfuscation:** A stageless Meterpreter x64 reverse HTTPS payload that employs a basic XOR encryption is used. This technique is implemented in all the samples.
+- **Obfuscation:** A stageless Meterpreter x64 reverse HTTPS payload that both the x64/xor encoding from msfvenom and a custom basic XOR encryption. This technique is implemented in all the samples.
 - **Shellcode Injection:** an injection of the Meterpreter payload is performed into **msedge.exe**, this could fool security solutions since Microsoft Edge regularly perform HTTPS request, therefore the Meterpreter traffic will be hidden with the regular Ms Edge traffic. This is implemented in all the samples.
 - **Basic API calls:** This is not an evasion tehcniques however, the sample implemeting this will serve as a baseline for other sample. This is implemented in the sample `Shellcode_injection`.
 - **Dynamic API Loading:** This is a basic method used to hide the APIs from the Import Address Table. This will resolve the APIs by loading them dynamically. This is implemented in the sample `Shellcode_injection_dynamic_lib`.
