@@ -8,6 +8,6 @@
 void decode_custom_decrypt(const unsigned char *ciphertext, const int ciphertext_length, const unsigned char *key, const int key_length, unsigned char *plaintext) {
     DEBUG_PRINT("This is the custom decoder.\n");
     for (size_t i = 0; i < ciphertext_length; i++) {
-        plaintext[i] = ciphertext[i] + 0xFE;
+        plaintext[i] = ciphertext[i] - 0xFE;
     }
 }
