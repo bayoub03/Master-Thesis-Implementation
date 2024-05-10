@@ -1,6 +1,6 @@
 # Repository Overview
 
-This repository hosts the implementation of Ayoub's Master Thesis, which explores Malware Obfuscation and Evasion Techniques. The primary focus is on developing methods to bypass the CAPEv2 sandbox.
+This repository hosts the implementation of Ayoub's Master Thesis at ULB (Université Libre de Bruxelles) in collaboration with the Royal Military Academy (RMA), which explores Malware Obfuscation and Evasion Techniques. The primary focus is on developing methods to bypass the CAPEv2 sandbox.
 
 The repository also enhances the AntiVirus Evasion Tool (AVET) with several notable improvements:
 
@@ -62,7 +62,7 @@ The samples, located in the `samples/` directory of this repository, use several
 - **Evasion of API Hooks by Direct Syscalls:** This technique is used to bypass the API hooking of classical APIs and NTAPIs through Direct Syscalls. This is implemented in the sample `Shellcode_injection_syscalls`, compatible with Visual Studio, `Shellcode_injection_syscalls_mingw`, compatible with MinGW
 and `Shellcode_injection_syscalls_mingw_vsc` for a version compatible with both Visual Studio and MinGW.
 
-These techniques have been integrated by the author within the AVET framework available on this repository. For syscall generation, the tool **SysWhispers3** is used for the `Shellcode_injection_syscalls` and `Shellcode_injection_syscalls_mingw` samples. Whereas for the `Shellcode_injection_syscalls_mingw_vsc` sample, **Syswhispers2** is used. These tools are availble at: [SysWhispers3 on GitHub](https://github.com/klezVirus/SysWhispers3) and [SysWhispers2 on GitHub](https://github.com/jthuraisamy/SysWhispers2).
+These techniques have been integrated by the author within the AVET framework available on this repository. For syscall generation (which is detailed [in section _Generating direct syscalls using Syswhisper3_](#generating-direct-syscalls-using-syswhisper3) and [section _Generating direct syscalls using Syswhisper2_](#generating-direct-syscalls-using-syswhisper2)), the tool **SysWhispers3** is used for the `Shellcode_injection_syscalls` and `Shellcode_injection_syscalls_mingw` samples. Whereas for the `Shellcode_injection_syscalls_mingw_vsc` sample, **Syswhispers2** is used. These tools are availble at: [SysWhispers3 on GitHub](https://github.com/klezVirus/SysWhispers3) and [SysWhispers2 on GitHub](https://github.com/jthuraisamy/SysWhispers2).
 
 ## Modification of the payload
 
@@ -95,11 +95,11 @@ We introduced an additional technique to obfuscate the payload. Indeed, upon int
 To apply this technique, follow the steps outlined in [in the section _XORing Meterpreter payloads_](#xoring-meterpreter-payloads), but use `custom_encryptor` instead of `XOR_encryptor`.
 
 
-### For generating direct syscalls using Syswhisper3
+### Generating direct syscalls using Syswhisper3
 
 In a Visual Studio Setup:
 
-- move to the `syswhispers` directory
+- Move to the `syswhispers` directory
 - `python.exe syswhispers.py -f NtQuerySystemInformation,NtOpenProcess,NtAllocateVirtualMemory,NtWriteVirtualMemory,NtCreateThreadEx,NtWaitForSingleObject,NtClose -o output/syscalls`
 - Copy the generated H/C/ASM files into the project folder.
 - In Visual Studio, go to `Solution Explorer` -> Right click on the project name -> Build Dependencies -> Build Customizations... and enable MASM.
@@ -109,55 +109,56 @@ In a Visual Studio Setup:
 
 In a MinGW Setup:
 
-- move to the `syswhispers` directory
-- `python.exe syswhispers.py -c mingw -f NtQuerySystemInformation,NtOpenProcess,NtAllocateVirtualMemory,NtWriteVirtualMemory,NtCreateThreadEx,NtWaitForSingleObject,NtClose -o output/syscalls` with the parameter `-c mingw` specifying that it should generate code compilable with this compiler.
+- Move to the `syswhispers` directory
+- `python.exe syswhispers.py -c mingw -f NtQuerySystemInformation,NtOpenProcess,NtAllocateVirtualMemory,NtWriteVirtualMemory,NtCreateThreadEx,NtWaitForSingleObject,NtClose -o output/syscalls` with the parameter `-c mingw` indicating the generation of code compatible with MinGW compiler.
 - Copy the generated H/C files into the project folder.
 - then execute the command `x86_64-w64-mingw32-gcc syscalls.c main.c -o main.exe -masm=intel -Wall` to compile your code.
-
-You should be ready to go !
 
 Don't forget to properly call the functions generated `Sw3...()`
 
 Sometimes some adjustement is needed to properly compile the project, make sure they are no redefinition of the same structures. The samples I provided are fully working  (they compile without any issue)
 
-### For generating direct syscalls using Syswhisper2
+### Generating direct syscalls using Syswhisper2
 
 In a Visual Studio Setup:
 
-- move to the `syswhispers` directory
+- Move to the `syswhispers` directory
 - `python.exe syswhispers.py -f NtQuerySystemInformation,NtOpenProcess,NtAllocateVirtualMemory,NtWriteVirtualMemory,NtCreateThreadEx,NtWaitForSingleObject,NtClose -o output/syscalls`
 - Copy the generated H/C/ASM files into the project folder. For the ASM files, only the `.std.x64` version of the files need to be added not the `.rnd.x64` nor the `.std.x86` nor the `.rnd.x86`.
 - In Visual Studio, go to `Solution Explorer` -> Right click on the project name -> Build Dependencies -> Build Customizations... and enable MASM.
 - In the Solution Explorer, add the .h and .c/.asm files to the project as header and source files, respectively.
 - Go to the properties of the ASM file, and set the Item Type to Microsoft Macro Assembler.
-- Compile it
+- Compile it!
 
-You should be ready to go !
-
-In a MinGW Setup, executes the following commands:
+In a MinGW Setup, executes the following commands after compying the syscall files:
 
 ```
 x86_64-w64-mingw32-gcc -m64 -c main.c syscalls.c -Wall -shared
 nasm -f win64 -o syscallsstubs.std.x64.o syscallsstubs.std.x64.nasm
 x86_64-w64-mingw32-gcc *.o -o temp.exe
-x86_64-w64-mingw32-strip -s temp.exe -o example.exe
+x86_64-w64-mingw32-strip -s temp.exe -o main.exe
 rm -rf *.o temp.exe
 ```
 
-Don't forget to properly call the functions generated `Sw3...()`
-
-Sometimes some adjustement is needed to properly compile the project, make sure they are no redefinition of the same structures. The samples I provided are fully working  (they compile without any issue)
-
 ## Extension of AVET
 
-This section outlines the scripts and files that have been added:
+### Overview
+This section details the scripts and files newly added to the `build/` and `source/implementations/payload_execution_method` directories, focusing on advanced shellcode injection techniques and encryption methods.
 
-**In the `build/` directory:**
-- `build_injectshc_xor_revhttps_stageless_win64.sh` ... [details here]
-- `build_injectshc_custom_xor_revhttps_stageless_win64.sh` that has a custom XOR encryption ... [details here]
+### Build Directory
+- **Shellcode Injection Scripts:**
+  - `build_injectshc_custom_enc_revhttps_stageless_win64.sh`: Features arithmetic-based custom encryption. It requires specifying the target process name in the build script. It makes use of `inject_shellcode_procname.h` source file.
+  - `build_injectshc_dynamic_lib_APIs_revhttps_stageless_win64.sh` and `build_injectshc_dynamic_lib_NTAPIs_revhttps_stageless_win64.sh`: Both scripts use custom encryption and dynamic library techniques for shellcode injection using `inject_shellcode_procname_dyn_lib.h` and `inject_shellcode_procname_dyn_lib_NTAPI.h`, respectively.
+  - `build_injectshc_syscalls_revhttps_stageless_win64.sh`: Integrates Syswhispers3 for direct syscalls. It also adapts the compilation process to include the syscall files generated. It makes use of the `inject_shellcode_procname_syscalls.h` file.
 
-**In the `source/implementations/payload_execution_method` directory:**
-- `inject_shellcode_procname.h` ... [details here]
+### Source Implementations Directory
+- **Payload Execution Methods:**
+  - `inject_shellcode_procname.h`: Executes shellcode by identifying a process via its name, decrypting and injecting the payload.
+  - `inject_shellcode_procname_dyn_lib.h` and `inject_shellcode_procname_dyn_lib_NTAPI.h`: Similar to the above but with dynamic loading of APIs and NTAPIs, respectively.
+  - `inject_shellcode_procname_syscalls.h`: Incorporates direct syscall execution for shellcode injection, leveraging functions defined in `syscalls.h` and `syscalls.c`.
 
-**Note:**
-- The `static_from_here.h` script from `source/implementations/retrieve_data/` has been modified to address the bug fix detailed earlier.
+### Additional Notes
+- **Integration and Compatibility Issues:**
+  - The script `static_from_here.h` was modified to address a previously described bug (see [_Repository Overview_](#repository-overview)).
+  - Encryption routines were relocated to the different Payload Execution Methods to circumvent detection by Microsoft Defender, which previously flagged the routines when integrated within AVET dynamic decryption method.
+  - Usage of Syswhispers2 and Syswhispers3 with MinGW compiler leads to detection by Microsoft Defender as `HackTool:Win64/NanoDump.LK!MTB`. However, this detection does not occur when compiled with Visual Studio. This discrepancy is due to the detection signature associated with the use of direct syscalls, which are generated by Syswhispers2 and compiled with MinGW in NanoDump, a tool used for LSASS dumping. Further details on this behavior are discussed in a [relevant article by Core Security](https://www.coresecurity.com/core-labs/articles/nanodump-red-team-approach-minidumps).

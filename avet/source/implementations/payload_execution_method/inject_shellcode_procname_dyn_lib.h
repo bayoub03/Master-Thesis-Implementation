@@ -110,6 +110,7 @@ void inject_shellcode_procname_dyn_lib(unsigned char *shellcode, int shellcode_s
         return;
     }
 
+    DEBUG_PRINT("Decrypting payload\n");
     // Decrypt payload
     custom_decrypt(shellcode, shellcode_size);
 

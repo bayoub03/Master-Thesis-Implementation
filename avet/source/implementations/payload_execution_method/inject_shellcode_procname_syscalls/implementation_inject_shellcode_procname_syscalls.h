@@ -63,7 +63,6 @@ void custom_decrypt(unsigned char *buf, const int buf_length) {
 	}	
 }
 
-
 int FindTarget(const wchar_t* target_process) {
 
    	PVOID buffer = NULL;
