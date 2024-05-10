@@ -1,0 +1,6 @@
+﻿  custom_encryptor.cpp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 312 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  custom_encryptor.vcxproj -> C:\Users\win10\source\repos\custom_encryptor\x64\Release\custom_encryptor.exe
