@@ -1,6 +1,6 @@
 # Repository Overview
 
-This repository hosts the implementation of Ayoub's Master Thesis at ULB (Université Libre de Bruxelles) in collaboration with the Royal Military Academy (RMA), which explores Malware Obfuscation and Evasion Techniques. The primary focus is on developing methods to bypass the CAPEv2 sandbox.
+This repository hosts the implementation of Ayoub's Master Thesis at Université Libre de Bruxelles (ULB) in collaboration with the Royal Military Academy (RMA), which explores Malware Obfuscation and Evasion Techniques. The primary focus is on developing methods to bypass the CAPEv2 sandbox.
 
 The repository also enhances the AntiVirus Evasion Tool (AVET) with several notable improvements:
 
