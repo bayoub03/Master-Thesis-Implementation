@@ -61,33 +61,6 @@ void XOR(unsigned char* data, size_t data_len) {
     }
 }
 
-
-/*
-
-    PVOID buffer = NULL;
-    ULONG buffer_size = 0x10000;
-    ULONG needed_size = 0;
-
-    buffer = malloc(buffer_size);
-    NTSTATUS status;
-
-    while ((status = Sw3NtQuerySystemInformation(SystemProcessInformation, buffer, buffer_size, &needed_size)) == STATUS_INFO_LENGTH_MISMATCH) {
-        buffer_size = needed_size;
-        buffer = realloc(buffer, buffer_size);
-    }
-
-    if (!NT_SUCCESS(status)) {
-        printf("Failed to query process information.\n");
-        free(buffer);
-        return 0;
-    }
-
-    SYSTEM_PROCESS_INFORMATION* spi = (SYSTEM_PROCESS_INFORMATION*)buffer;
-    int pid = 0;
-
-*/
-
-
 int FindTarget(const wchar_t* target_process) {
 
     PVOID buffer = NULL;
