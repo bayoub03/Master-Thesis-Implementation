@@ -1,5 +1,8 @@
 #pragma once 
 
+#define UNICODE
+#define _UNICODE
+
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>

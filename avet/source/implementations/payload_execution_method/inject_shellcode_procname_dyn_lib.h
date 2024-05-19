@@ -1,5 +1,8 @@
 #pragma once 
 
+#define UNICODE
+#define _UNICODE
+
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -83,7 +86,7 @@ void inject_shellcode_procname_dyn_lib(unsigned char *shellcode, int shellcode_s
     int target_pid = 0;
     wchar_t target_process[256]; // Assuming payload_info is less than 256 characters
     mbstowcs(target_process, payload_info, 256); // Convert char* to wchar_t*
-    
+
     DEBUG_PRINT("Extracted payload_info::process_name argument = %s\n", target_process);
 
     DEBUG_PRINT("Finding target PID...\n");
