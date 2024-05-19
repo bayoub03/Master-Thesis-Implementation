@@ -29,12 +29,11 @@ pfnOPENPROCESS pOpenProcess = NULL;
 
 // Load all APIs dynamically
 void LoadAPIs() {
-    HMODULE hKernel32 = GetModuleHandle("kernel32.dll");
-    HMODULE hUser32 = GetModuleHandle("user32.dll");
+    HMODULE hKernel32 = GetModuleHandle(L"kernel32.dll");
 
     pCreateToolhelp32Snapshot = (pfnCREATETOOLHELP32SNAPSHOT)GetProcAddress(hKernel32, "CreateToolhelp32Snapshot");
-    pProcess32First = (pfnPROCESS32FIRST)GetProcAddress(hKernel32, "Process32First");
-    pProcess32Next = (pfnPROCESS32NEXT)GetProcAddress(hKernel32, "Process32Next");
+    pProcess32First = (pfnPROCESS32FIRST)GetProcAddress(hKernel32, "Process32FirstW");
+    pProcess32Next = (pfnPROCESS32NEXT)GetProcAddress(hKernel32, "Process32NextW");
     pVirtualAllocEx = (pfnVIRTUALALLOCEX)GetProcAddress(hKernel32, "VirtualAllocEx");
     pWriteProcessMemory = (pfnWRITEPROCESSMEMORY)GetProcAddress(hKernel32, "WriteProcessMemory");
     pCreateRemoteThread = (pfnCREATEREMOTETHREAD)GetProcAddress(hKernel32, "CreateRemoteThread");
