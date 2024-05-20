@@ -25,7 +25,6 @@ pfnOPENPROCESS pOpenProcess = NULL;
 // Load all APIs dynamically
 void LoadAPIs() {
     HMODULE hKernel32 = GetModuleHandle(L"kernel32.dll");
-    // HMODULE hUser32 = GetModuleHandle(L"user32.dll"); We don't use this handle
 
     pCreateToolhelp32Snapshot = (pfnCREATETOOLHELP32SNAPSHOT)GetProcAddress(hKernel32, "CreateToolhelp32Snapshot");
     pProcess32First = (pfnPROCESS32FIRST)GetProcAddress(hKernel32, "Process32FirstW");

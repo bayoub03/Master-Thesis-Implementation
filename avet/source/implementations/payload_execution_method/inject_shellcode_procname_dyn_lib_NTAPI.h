@@ -51,7 +51,7 @@ pfnNtQuerySystemInformation pNtQuerySystemInformation = NULL;
 
 // Function to dynamically load NTAPIs
 void LoadAPIs() {
-    HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
+    HMODULE hNtdll = GetModuleHandleW(L"ntdll.dll");
 
     pNtAllocateVirtualMemory = (pfnNtAllocateVirtualMemory)GetProcAddress(hNtdll, "NtAllocateVirtualMemory");
     pNtWriteVirtualMemory = (pfnNtWriteVirtualMemory)GetProcAddress(hNtdll, "NtWriteVirtualMemory");
