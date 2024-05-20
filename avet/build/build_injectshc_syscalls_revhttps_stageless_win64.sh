@@ -76,7 +76,7 @@ set_decoder none
 set_payload_execution_method inject_shellcode_procname_syscalls
 
 # compile 
-$win64_compiler -o output/injectshc_syscalls_revhttps_stageless_win64.exe source/avet.c source/implementations/payload_execution_method/inject_shellcode_procname_syscalls/syscalls.c -masm=intel -Wall
+$win64_compiler -o output/injectshc_syscalls_revhttps_stageless_win64.exe source/avet.c source/implementations/payload_execution_method/inject_shellcode_procname_syscalls/syscalls.c -masm=intel
 strip output/injectshc_syscalls_revhttps_stageless_win64.exe
 
 # cleanup
