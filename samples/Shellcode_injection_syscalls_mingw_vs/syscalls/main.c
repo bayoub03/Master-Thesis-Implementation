@@ -133,12 +133,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	NtCreateThreadEx(&hThread, 0x1FFFFF, NULL, hProc, (LPTHREAD_START_ROUTINE)remote_process_buffer, NULL, FALSE, NULL, NULL, NULL, NULL);
 
-	NtWaitForSingleObject(hProc, FALSE, INFINITE);
-
-	NtClose(hThread);
+	WaitForSingleObject(hProc, INFINITE);
 
 	// Close handle of the opened process
-	NtClose(hProc);
+	CloseHandle(hProc);
 
 	return 0;
 }
