@@ -1,8 +1,6 @@
-﻿  main.c
-C:\Users\win10\Desktop\Master-Thesis-Implementation-main\samples\Shellcode_injection_NTAPIs\Shellcode_injection_NTAPIs\main.c(92,35): warning C4311: 'type cast': pointer truncation from 'HANDLE' to 'int'
-C:\Users\win10\Desktop\Master-Thesis-Implementation-main\samples\Shellcode_injection_NTAPIs\Shellcode_injection_NTAPIs\main.c(148,41): warning C4312: 'type cast': conversion from 'int' to 'HANDLE' of greater size
-  Generating code
+﻿  Generating code
   Finished generating code
-  Previous IPDB and IOBJ mismatch, fall back to full compilation.
-  All 8 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  0 of 8 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Shellcode_injection_NTAPIs.vcxproj -> C:\Users\win10\Desktop\Master-Thesis-Implementation-main\samples\Shellcode_injection_NTAPIs\x64\Release\Shellcode_injection_NTAPIs.exe
