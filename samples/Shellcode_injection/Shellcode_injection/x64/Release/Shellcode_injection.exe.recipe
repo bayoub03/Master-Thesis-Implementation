@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\User\source\repos\Shellcode_injection\x64\Release\Shellcode_injection.exe</FullPath>
+      <FullPath>C:\Users\win10\Desktop\Master-Thesis-Implementation-main\samples\Shellcode_injection\x64\Release\Shellcode_injection.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
