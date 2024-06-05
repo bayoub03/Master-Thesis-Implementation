@@ -6,14 +6,32 @@
 #include <sstream>
 #include <iomanip>
 
-// XORs each byte of the buffer with a given key
+/* 
+ * This function performs an XOR encryption/decryption on the input data.
+ *
+ * @param data: Pointer to the data to be encrypted/decrypted
+ * @param data_len: Length of the data
+ *
+ * The function XORs each byte of the input data with a fixed key (0xAA).
+ * This is a simple and symmetric encryption method, meaning the same 
+ * function can be used for both encryption and decryption.
+ */
 void XOR(unsigned char* data, size_t data_len) {
     for (size_t i = 0; i < data_len; i++) {
         data[i] = data[i] ^ 0xAA;
     }
 }
 
-// Helper function to convert string to byte array
+/* 
+ * This function converts a string of hex values into a vector of bytes.
+ *
+ * @param input: The string containing hexadecimal values
+ *
+ * @return A vector of bytes corresponding to the hexadecimal values in the input string
+ *
+ * The function processes the input string in chunks of 4 characters,
+ * converts each chunk to a byte and stores the bytes in a vector.
+ */
 std::vector<unsigned char> stringToBytes(const std::string& input) {
     std::vector<unsigned char> bytes;
     for (size_t i = 0; i < input.length(); i += 4) {
@@ -23,6 +41,18 @@ std::vector<unsigned char> stringToBytes(const std::string& input) {
     return bytes;
 }
 
+/* 
+ * This function converts a vector of bytes back to a string with each byte
+ * represented as \xHH and organizes the string into lines.
+ *
+ * @param bytes: The vector of bytes to convert
+ * @param line_length: The maximum length of each line in the output string
+ *
+ * @return A formatted string where each byte is represented as \xHH
+ *
+ * The function processes the byte vector, converts each byte to a hexadecimal
+ * string and organizes the output into lines with a specified maximum length.
+ */
 std::string bytesToString(const std::vector<unsigned char>& bytes, size_t line_length = 60) {
     std::ostringstream result;
     result << std::hex << std::setfill('0');
@@ -49,7 +79,11 @@ std::string bytesToString(const std::vector<unsigned char>& bytes, size_t line_l
     return result.str();
 }
 
-
+/* 
+ * The main function reads an input file containing
+ * a hexadecimal encoded buffer, decrypts the buffer using XOR and writes
+ * the decrypted buffer to an output file.
+ */
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <input_file> <output_file>\n";

